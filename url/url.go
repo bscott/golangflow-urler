@@ -61,7 +61,7 @@ func Get(ctx context.Context, id string) (*URL, error) {
 func List(ctx context.Context) ([]URL, error) {
 	var urls []URL
 	urls, err := sqldb.Query(ctx, `
-		SELECT original_url FROM url
+		SELECT id, original_url FROM url
 	`).Scan(&urls)
 	return urls, err
 }
