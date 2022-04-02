@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/base64"
-	"fmt"
 	"net/http"
 	"strings"
 
@@ -91,7 +90,6 @@ func List(ctx context.Context) (*ListUrlResponse, error) {
 //encore:api public raw method=GET path=/redirect/:id
 func Redirect(w http.ResponseWriter, req *http.Request) {
 	id := strings.TrimPrefix(req.URL.Path, "/redirect/")
-	fmt.Println(id)
 	u := &URL{ID: id}
 	err := sqldb.QueryRow(context.Background(), `
 		SELECT original_url FROM url
