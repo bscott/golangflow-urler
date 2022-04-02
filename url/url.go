@@ -8,6 +8,10 @@ import (
 	"encore.dev/storage/sqldb"
 )
 
+type ListUrlResponse struct {
+	URLs []*URL `json:"urls"`
+}
+
 type URL struct {
 	ID  string // short-form URL id
 	URL string // complete URL, in long form
@@ -58,10 +62,24 @@ func Get(ctx context.Context, id string) (*URL, error) {
 	return u, err
 }
 
-func List(ctx context.Context) ([]URL, error) {
-	var urls []URL
-	urls, err := sqldb.Query(ctx, `
-		SELECT id, original_url FROM url
-	`).Scan(&urls)
-	return urls, err
+// List lists all URLs.
+//encore:api public method=GET path=/url
+func List(ctx context.Context) (*ListUrlResponse, error) {
+	rows, err := sqldb.Query(ctx, `
+        SELECT * FROM url ORDER BY id DESC
+    `)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var urls []*URL
+
+	for rows.Next() {
+		var u URL
+		if err := rows.Scan(&u.ID, &u.URL); err != nil {
+			return nil, err
+		}
+		urls = append(urls, &u)
+	}
+	return &ListUrlResponse{URLs: urls}, rows.Err()
 }
