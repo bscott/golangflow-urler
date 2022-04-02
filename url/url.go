@@ -88,9 +88,9 @@ func List(ctx context.Context) (*ListUrlResponse, error) {
 }
 
 // Redirects to Orginal URL based on Id
-//encore:api public raw
+//encore:api public raw method=GET path=/redirect/:id
 func Redirect(w http.ResponseWriter, req *http.Request) {
-	id := strings.TrimPrefix(req.URL.Path, "/url.Redirect/")
+	id := strings.TrimPrefix(req.URL.Path, "/redirect/")
 	fmt.Println(id)
 	u := &URL{ID: id}
 	err := sqldb.QueryRow(context.Background(), `
@@ -98,7 +98,7 @@ func Redirect(w http.ResponseWriter, req *http.Request) {
 		WHERE id = $1
 	`, id).Scan(&u.URL)
 	// redirect to original URL
-	if err != nil {
+	if err == nil {
 		http.Redirect(w, req, u.URL, http.StatusMovedPermanently)
 	}
 	http.Redirect(w, req, "https://golangflow.io/", http.StatusMovedPermanently)
