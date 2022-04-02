@@ -4,6 +4,9 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/base64"
+	"fmt"
+	"net/http"
+	"strings"
 
 	"encore.dev/storage/sqldb"
 )
@@ -82,4 +85,21 @@ func List(ctx context.Context) (*ListUrlResponse, error) {
 		urls = append(urls, &u)
 	}
 	return &ListUrlResponse{URLs: urls}, rows.Err()
+}
+
+// Redirects to Orginal URL based on Id
+//encore:api public raw
+func Redirect(w http.ResponseWriter, req *http.Request) {
+	id := strings.TrimPrefix(req.URL.Path, "/url.Redirect/")
+	fmt.Println(id)
+	u := &URL{ID: id}
+	err := sqldb.QueryRow(context.Background(), `
+		SELECT original_url FROM url
+		WHERE id = $1
+	`, id).Scan(&u.URL)
+	// redirect to original URL
+	if err != nil {
+		http.Redirect(w, req, u.URL, http.StatusMovedPermanently)
+	}
+	http.Redirect(w, req, "https://golangflow.io/", http.StatusMovedPermanently)
 }
