@@ -98,6 +98,7 @@ func Redirect(w http.ResponseWriter, req *http.Request) {
 	// redirect to original URL
 	if err == nil {
 		http.Redirect(w, req, u.URL, http.StatusMovedPermanently)
+		return
 	}
 	http.Redirect(w, req, "https://golangflow.io/", http.StatusMovedPermanently)
 }
