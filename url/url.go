@@ -15,8 +15,9 @@ type ListUrlResponse struct {
 }
 
 type URL struct {
-	ID  string // short-form URL id
-	URL string // complete URL, in long form
+	ID    string // short-form URL id
+	URL   string // complete URL, in long form
+	Count int    // number of times the URL has been visited
 }
 
 type ShortenParams struct {
@@ -78,7 +79,7 @@ func List(ctx context.Context) (*ListUrlResponse, error) {
 
 	for rows.Next() {
 		var u URL
-		if err := rows.Scan(&u.ID, &u.URL); err != nil {
+		if err := rows.Scan(&u.ID, &u.URL, &u.Count); err != nil {
 			return nil, err
 		}
 		urls = append(urls, &u)
