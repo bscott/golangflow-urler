@@ -95,6 +95,23 @@ func Redirect(w http.ResponseWriter, req *http.Request) {
 		SELECT original_url FROM url
 		WHERE id = $1
 	`, id).Scan(&u.URL)
+
+	// Update Count to increment when user visits the URL
+	result, err := sqldb.Exec(context.Background(), `
+		UPDATE url SET count = count + 1
+		WHERE id = $1
+	`, id)
+
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	if result.RowsAffected() == 0 {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+
 	// redirect to original URL
 	if err == nil {
 		http.Redirect(w, req, u.URL, http.StatusMovedPermanently)

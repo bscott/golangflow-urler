@@ -1,0 +1,1 @@
+ALTER TABLE url ADD count INTEGER;
