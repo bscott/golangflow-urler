@@ -15,8 +15,9 @@ type ListUrlResponse struct {
 }
 
 type URL struct {
-	ID  string // short-form URL id
-	URL string // complete URL, in long form
+	ID    string // short-form URL id
+	URL   string // complete URL, in long form
+	Count int    // number of times the URL has been visited
 }
 
 type ShortenParams struct {
@@ -78,7 +79,7 @@ func List(ctx context.Context) (*ListUrlResponse, error) {
 
 	for rows.Next() {
 		var u URL
-		if err := rows.Scan(&u.ID, &u.URL); err != nil {
+		if err := rows.Scan(&u.ID, &u.URL, &u.Count); err != nil {
 			return nil, err
 		}
 		urls = append(urls, &u)
@@ -95,6 +96,23 @@ func Redirect(w http.ResponseWriter, req *http.Request) {
 		SELECT original_url FROM url
 		WHERE id = $1
 	`, id).Scan(&u.URL)
+
+	// Update Count to increment when user visits the URL
+	result, err := sqldb.Exec(context.Background(), `
+		UPDATE url SET count = count + 1
+		WHERE id = $1
+	`, id)
+
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	if result.RowsAffected() == 0 {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+
 	// redirect to original URL
 	if err == nil {
 		http.Redirect(w, req, u.URL, http.StatusMovedPermanently)
